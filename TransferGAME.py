@@ -7,7 +7,6 @@ The transfer goes through the broker, who applies a discount rate to the utiliti
 
 """
 
-
 import random
 import numpy as np
 from numpy.random import choice
@@ -490,7 +489,6 @@ for i in range(15):
                 elif ONE_P1_EQ_choice_storage[-1] == "d" and ONE_P2_EQ_choice_storage[-1] == "d":
                     ONE_P1_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
-
 
         if ONE_P2_request == "need":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
