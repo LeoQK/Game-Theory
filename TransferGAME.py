@@ -28,6 +28,8 @@ ONE_P1_EQ_choice_storage = []
 ONE_P2_EQ_choice_storage = []
 ONE_P1_transfer_storage = []
 ONE_P2_transfer_storage = []
+ONE_P1_destination_storage = []
+ONE_P2_destination_storage = []
 
 TWO_P1_EQ_utilities_storage = []
 TWO_P2_EQ_utilities_storage = []
@@ -35,15 +37,23 @@ TWO_P1_EQ_choice_storage = []
 TWO_P2_EQ_choice_storage = []
 TWO_P1_transfer_storage = []
 TWO_P2_transfer_storage = []
+TWO_P1_destination_storage = []
+TWO_P2_destination_storage = []
 
 ONE_game_storage = []
 TWO_game_storage = []
+
+# Storage for EQ_ID and equilibrium strategy selected
+ONE_EQ_ID_storage = []
+TWO_EQ_ID_storage = []
+ONE_EQ_selected_storage = []
+TWO_EQ_selected_storage = []
 
 # Storage for BROKER for level of discount rate, utilities transferred and target of utility transfer
 BROKER_rate_storage = []
 BROKER_transfer_storage = []
 BROKER_target_storage = []
-Broker_utility_reserve_storage = []
+BROKER_utility_reserve_storage = []
 
 # Utilities for ONE and TWO
 ONE_P1_cc = 2
@@ -66,9 +76,17 @@ TWO_P2_dc = 5
 TWO_P2_cd = 0
 TWO_P2_dd = 1
 
+# Choice alignment between ONE_P1 - TWO_P1 and ONE_P2 - TWO_P2
+P1s_choice_alignment = []
+P2s_choice_alignment = []
+
 # Memory factors MF1 and MF2 determining the utility transferred by a player based on memory of interaction with partner
-MF1 = 0.1
-MF2 = 0.1
+MF1 = 0
+MF2 = 0
+
+# Storage of MF1 and MF2
+MF1_storage = []
+MF2_storage = []
 
 # BROKER utility reserve
 # Cumulative amount of utilities gained through discounting the transfer between ONE and TWO
@@ -81,13 +99,17 @@ TWO_EQ_ID = None
 # Transfer Active ID to check whether transfer has occurred
 Transfer_status = "Negative"
 
+# Allocation_frequency to calculate amount transferred by BROKER
+
+Allocation_frequency = 0
+
 ###########
 
 # Main loop
 
 ###########
 
-for i in range(10):
+for i in range(15):
 
     ##########################
 
@@ -137,7 +159,7 @@ for i in range(10):
     # Compute equilibrium utilities and identify EQ
 
     if ONE_P1_choice == ONE_P2_choice:
-        if ONE_P1_choice == "c":
+        if ONE_P1_choice == ["c"]:
             ONE_P1_EQ_utility = ONE_P1_cc
             ONE_P2_EQ_utility = ONE_P2_cc
             ONE_EQ_ID = "cc"
@@ -146,7 +168,7 @@ for i in range(10):
             ONE_P2_EQ_utility = ONE_P2_dd
             ONE_EQ_ID = "dd"
     else:
-        if ONE_P1_choice == "c":
+        if ONE_P1_choice == ["c"]:
             ONE_P1_EQ_utility = ONE_P1_cd
             ONE_P2_EQ_utility = ONE_P2_dc
             ONE_EQ_ID = "cd"
@@ -156,7 +178,7 @@ for i in range(10):
             ONE_EQ_ID = "dc"
 
     if TWO_P1_choice == TWO_P2_choice:
-        if TWO_P1_choice == "c":
+        if TWO_P1_choice == ["c"]:
             TWO_P1_EQ_utility = TWO_P1_cc
             TWO_P2_EQ_utility = TWO_P2_cc
             TWO_EQ_ID = "cc"
@@ -165,7 +187,7 @@ for i in range(10):
             TWO_P2_EQ_utility = TWO_P2_dd
             TWO_EQ_ID = "dd"
     else:
-        if TWO_P1_choice == "c":
+        if TWO_P1_choice == ["c"]:
             TWO_P1_EQ_utility = TWO_P1_cd
             TWO_P2_EQ_utility = TWO_P2_dc
             TWO_EQ_ID = "cd"
@@ -174,30 +196,35 @@ for i in range(10):
             TWO_P2_EQ_utility = TWO_P2_cd
             TWO_EQ_ID = "dc"
 
-    ##############################################
+    ##################################################################
 
-    # UPDATE STORAGE OF CHOICE, EQ UTILITIES, GAME
+    # UPDATE STORAGE OF CHOICE, EQ UTILITIES, GAME, EQ_ID, EQ_SELECTED
 
-    ##############################################
+    ##################################################################
 
     # Update choice storage variables
-
     ONE_P1_EQ_choice_storage.append(ONE_P1_choice)
     ONE_P2_EQ_choice_storage.append(ONE_P2_choice)
     TWO_P1_EQ_choice_storage.append(TWO_P1_choice)
     TWO_P2_EQ_choice_storage.append(TWO_P2_choice)
 
     # Update EQ utilities storage variable
-
     ONE_P1_EQ_utilities_storage.append(ONE_P1_EQ_utility)
     ONE_P2_EQ_utilities_storage.append(ONE_P2_EQ_utility)
     TWO_P1_EQ_utilities_storage.append(TWO_P1_EQ_utility)
     TWO_P2_EQ_utilities_storage.append(TWO_P2_EQ_utility)
 
     # Update game storage variables
-
     ONE_game_storage.append(ONE)
     TWO_game_storage.append(TWO)
+
+    # Update EQ_ID storage variables
+    ONE_EQ_ID_storage.append(ONE_EQ_ID)
+    TWO_EQ_ID_storage.append(TWO_EQ_ID)
+
+    # Update EQ_selected storage variables
+    ONE_EQ_selected_storage.append(ONE_EQ_selected)
+    TWO_EQ_selected_storage.append(TWO_EQ_selected)
 
     #############################
 
@@ -207,8 +234,6 @@ for i in range(10):
 
     # Choice alignment of each pair of players P1s and P2s
     # Constitutes a complete history and partially feeds into the players' memories
-    P1s_choice_alignment = []
-    P2s_choice_alignment = []
 
     if ONE_P1_EQ_choice_storage[-1] == TWO_P1_EQ_choice_storage[-1]:
         P1s_choice_alignment.append(1)
@@ -222,8 +247,8 @@ for i in range(10):
 
     # Memory of each pair of players P1s and P2s
     memory_depth = 10
-    P1s_memory = [P1s_choice_alignment[-memory_depth:]]
-    P2s_memory = [P2s_choice_alignment[-memory_depth:]]
+    P1s_memory = P1s_choice_alignment[-memory_depth:]
+    P2s_memory = P2s_choice_alignment[-memory_depth:]
 
     # Memory factors MF1 and MF2
     # Between 0 and 1 and weights the utility to be transferred
@@ -237,8 +262,8 @@ for i in range(10):
             MF2 += 0.1
         else:
             pass
-
-    # TODO: set MF1 and MF2 back to 0 at the end of the loop
+    print("MF1", "i =", i, MF1, P1s_memory)
+    print("MF2", "i =", i, MF2, P2s_memory)
 
     # Calculate utility to be transferred
     # For now, the calculation is a random sample from a player's equilibrium utility weighted by the memory factor
@@ -249,10 +274,19 @@ for i in range(10):
 
     # Check transfer status
     # Transfer starts only after five iterations of the game have taken place
-    if len(ONE_P1_EQ_choice_storage[-5:]) >= 5 is True:
-        Transfer_status == "Positive"
+    if len(ONE_P1_EQ_choice_storage[-5:]) >= 5:
+        Transfer_status = "Positive"
     else:
         pass
+
+    ###############################
+
+    # UPDATE STORAGE OF MF1 and MF2
+
+    ###############################
+
+    MF1_storage.append(MF1)
+    MF2_storage.append(MF2)
 
     #######################
 
@@ -283,7 +317,6 @@ for i in range(10):
     ###########################################
 
     BROKER_rate_storage.append(BROKER_discount_rate)
-    Broker_utility_reserve_storage.append(BROKER_utility_reserve)
 
     ########################
 
@@ -329,32 +362,38 @@ for i in range(10):
     # (1)
     # Transfer starts only after five iterations of the game have taken place
     # ONE_P1
+
     if Transfer_status == "Positive":
-        if len([k for k in ONE_P1_EQ_choice_storage[-5:] if k == 1]) > 2:
+        if len([k for k in ONE_P1_EQ_choice_storage[-5:] if k == ["c"]]) > 2:
             ONE_P1_destination = "c"
         else:
             ONE_P1_destination = "d"
 
         # ONE_P2
-        if len([k for k in ONE_P2_EQ_choice_storage[-5:] if k == 1]) > 2:
+        if len([k for k in ONE_P2_EQ_choice_storage[-5:] if k == ["c"]]) > 2:
             ONE_P2_destination = "c"
         else:
             ONE_P2_destination = "d"
 
         # TWO_P1
-        if len([k for k in TWO_P1_EQ_choice_storage[-5:] if k == 1]) > 2:
+        if len([k for k in TWO_P1_EQ_choice_storage[-5:] if k == ["c"]]) > 2:
             TWO_P1_destination = "c"
         else:
             TWO_P1_destination = "d"
 
         # TWO_P2
-        if len([k for k in TWO_P2_EQ_choice_storage[-5:] if k == 1]) > 2:
+        if len([k for k in TWO_P2_EQ_choice_storage[-5:] if k == ["c"]]) > 2:
             TWO_P2_destination = "c"
         else:
             TWO_P2_destination = "d"
-        Transfer_status = "Positive"
     else:
         pass
+
+    # Update destination storage variables
+    #     ONE_P1_destination_storage.append(ONE_P1_destination)
+    #     ONE_P2_destination_storage.append(ONE_P2_destination)
+    #     TWO_P1_destination_storage.append(TWO_P1_destination)
+    #     TWO_P2_destination_storage.append(TWO_P2_destination)
 
     # (2)
     # Allocation of transfers as even split of transfer across both outcomes aligned with strategy
@@ -397,9 +436,104 @@ for i in range(10):
 
         # TRANSFER BROKER TO GAME
 
-        #########################
+        ##########################
 
-        pass
+    # Check who of the players needs mediation based on utility decreases in current period larger than the utility of
+    # previous period divided by 2
+
+    if Transfer_status == "Positive":
+        if (ONE_P1_EQ_utilities_storage[-1] - ONE_P1_EQ_utilities_storage[-2]) < (ONE_P1_EQ_utilities_storage[-1] / 2):
+            ONE_P1_request = "need"
+        else:
+            ONE_P1_request = "pass"
+
+        if (ONE_P2_EQ_utilities_storage[-1] - ONE_P2_EQ_utilities_storage[-2]) < (ONE_P2_EQ_utilities_storage[-1] / 2):
+            ONE_P2_request = "need"
+        else:
+            ONE_P2_request = "pass"
+
+        if (TWO_P1_EQ_utilities_storage[-1] - TWO_P1_EQ_utilities_storage[-2]) < (TWO_P1_EQ_utilities_storage[-1] / 2):
+            TWO_P1_request = "need"
+        else:
+            TWO_P1_request = "pass"
+
+        if (TWO_P2_EQ_utilities_storage[-1] - TWO_P2_EQ_utilities_storage[-2]) < (TWO_P2_EQ_utilities_storage[-1] / 2):
+            TWO_P2_request = "need"
+        else:
+            TWO_P2_request = "pass"
+
+        # BROKER allocation rate, defining probability of allocating v. not allocating is request == need
+
+        BROKER_allocation_rate = 0.5
+
+        BROKER_choice_distribution = [BROKER_allocation_rate, (1 - BROKER_allocation_rate)]
+
+        # BROKER transfer choice categories
+
+        BROKER_choice_categories = ["allocate", "pass"]
+
+        # BROKER Transfer amount
+
+        BROKER_transfer_amount = random.uniform(0, BROKER_utility_reserve / 4)
+
+        # BROKER transfer enhances equilibrium position
+
+        if ONE_P1_request == "need":
+            BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
+            if BROKER_choice == "allocate":
+                if ONE_P1_EQ_choice_storage[-1] == "c" and ONE_P2_EQ_choice_storage[-1] == "c":
+                    ONE_P1_cc += BROKER_transfer_amount
+                elif ONE_P1_EQ_choice_storage[-1] == "c" and ONE_P2_EQ_choice_storage[-1] == "d":
+                    ONE_P1_cd += BROKER_transfer_amount
+                elif ONE_P1_EQ_choice_storage[-1] == "d" and ONE_P2_EQ_choice_storage[-1] == "c":
+                    ONE_P1_dc += BROKER_transfer_amount
+                elif ONE_P1_EQ_choice_storage[-1] == "d" and ONE_P2_EQ_choice_storage[-1] == "d":
+                    ONE_P1_dd += BROKER_transfer_amount
+                Allocation_frequency += 1
+
+
+        if ONE_P2_request == "need":
+            BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
+            if BROKER_choice == "allocate":
+                if ONE_P1_EQ_choice_storage[-1] == "c" and ONE_P2_EQ_choice_storage[-1] == "c":
+                    ONE_P2_cc += BROKER_transfer_amount
+                elif ONE_P1_EQ_choice_storage[-1] == "c" and ONE_P2_EQ_choice_storage[-1] == "d":
+                    ONE_P2_cd += BROKER_transfer_amount
+                elif ONE_P1_EQ_choice_storage[-1] == "d" and ONE_P2_EQ_choice_storage[-1] == "c":
+                    ONE_P2_dc += BROKER_transfer_amount
+                else:
+                    ONE_P2_dd += BROKER_transfer_amount
+                Allocation_frequency += 1
+
+        if TWO_P1_request == "need":
+            BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
+            if BROKER_choice == "allocate":
+                if TWO_P1_EQ_choice_storage[-1] == "c" and TWO_P2_EQ_choice_storage[-1] == "c":
+                    TWO_P1_cc += BROKER_transfer_amount
+                elif TWO_P1_EQ_choice_storage[-1] == "c" and TWO_P2_EQ_choice_storage[-1] == "d":
+                    TWO_P1_cd += BROKER_transfer_amount
+                elif TWO_P1_EQ_choice_storage[-1] == "d" and TWO_P2_EQ_choice_storage[-1] == "c":
+                    TWO_P1_dc += BROKER_transfer_amount
+                else:
+                    TWO_P1_dd += BROKER_transfer_amount
+                Allocation_frequency += 1
+
+        if TWO_P2_request == "need":
+            BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
+            if BROKER_choice == "allocate":
+                if TWO_P1_EQ_choice_storage[-1] == "c" and TWO_P2_EQ_choice_storage[-1] == "c":
+                    TWO_P2_cc += BROKER_transfer_amount
+                elif TWO_P1_EQ_choice_storage[-1] == "c" and TWO_P2_EQ_choice_storage[-1] == "d":
+                    TWO_P2_cd += BROKER_transfer_amount
+                elif TWO_P1_EQ_choice_storage[-1] == "d" and TWO_P2_EQ_choice_storage[-1] == "c":
+                    TWO_P2_dc += BROKER_transfer_amount
+                else:
+                    TWO_P2_dd += BROKER_transfer_amount
+                Allocation_frequency += 1
+
+        # Subtract allocated transfers from BROKER_utility_reserve
+
+        BROKER_utility_reserve -= Allocation_frequency * BROKER_transfer_amount
 
         ###############################################
 
@@ -407,13 +541,20 @@ for i in range(10):
 
         ###############################################
 
-        pass
+        # Update BROKER transfer storage
 
-        ###################
+        BROKER_transfer_storage.append(Allocation_frequency * BROKER_transfer_amount)
 
-        # RESET MF1 and MF2
+        # Update BROKER utility reserve storage
+        BROKER_utility_reserve_storage.append(BROKER_utility_reserve)
 
-        ###################
 
-        MF1 = 0
-        MF2 = 0
+        ############################################
+
+        # RESET MF1 and MF2 and Allocation_frequency
+
+        ############################################
+
+    MF1 = 0
+    MF2 = 0
+    Allocation_frequency = 0
