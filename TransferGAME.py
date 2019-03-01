@@ -7,10 +7,13 @@ The transfer goes through the broker, who applies a discount rate to the utiliti
 
 """
 
+
 import random
 import numpy as np
-from numpy.random import choice
 import nashpy as nash
+from numpy.random import choice
+from tabulate import tabulate
+
 
 # The code is divided into pre-loop and main loop.
 
@@ -102,13 +105,22 @@ Transfer_status = "Negative"
 
 Allocation_frequency = 0
 
+# Binary version of equilibrium IDs
+
+ONE_cc_eq, ONE_cd_eq, ONE_dc_eq, ONE_dd_eq = 0, 0, 0, 0
+TWO_cc_eq, TWO_cd_eq, TWO_dc_eq, TWO_dd_eq = 0, 0, 0, 0
+
+# Equilibrium strategy profile binary
+ONE_cc_eq_strat, ONE_cd_eq_strat, ONE_dc_eq_strat, ONE_dd_eq_strat = [], [], [], []
+TWO_cc_eq_strat, TWO_cd_eq_strat, TWO_dc_eq_strat, TWO_dd_eq_strat = [], [], [], []
+
 ###########
 
 # Main loop
 
 ###########
 
-for i in range(15):
+for i in range(50):
 
     ##########################
 
@@ -261,8 +273,8 @@ for i in range(15):
             MF2 += 0.1
         else:
             pass
-    print("MF1", "i =", i, MF1, P1s_memory)
-    print("MF2", "i =", i, MF2, P2s_memory)
+    # print("MF1", "i =", i, MF1, P1s_memory)
+    # print("MF2", "i =", i, MF2, P2s_memory)
 
     # Calculate utility to be transferred
     # For now, the calculation is a random sample from a player's equilibrium utility weighted by the memory factor
@@ -463,7 +475,7 @@ for i in range(15):
 
         # BROKER allocation rate, defining probability of allocating v. not allocating is request == need
 
-        BROKER_allocation_rate = 0.5
+        BROKER_allocation_rate = 1
 
         BROKER_choice_distribution = [BROKER_allocation_rate, (1 - BROKER_allocation_rate)]
 
@@ -489,6 +501,9 @@ for i in range(15):
                 elif ONE_P1_EQ_choice_storage[-1] == "d" and ONE_P2_EQ_choice_storage[-1] == "d":
                     ONE_P1_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+            else:
+                pass
+
 
         if ONE_P2_request == "need":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
@@ -502,6 +517,8 @@ for i in range(15):
                 else:
                     ONE_P2_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+            else:
+                pass
 
         if TWO_P1_request == "need":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
@@ -515,6 +532,8 @@ for i in range(15):
                 else:
                     TWO_P1_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+            else:
+                pass
 
         if TWO_P2_request == "need":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
@@ -528,6 +547,8 @@ for i in range(15):
                 else:
                     TWO_P2_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+            else:
+                pass
 
         # Subtract allocated transfers from BROKER_utility_reserve
 
@@ -539,20 +560,146 @@ for i in range(15):
 
         ###############################################
 
+        # TODO: check indent
+
         # Update BROKER transfer storage
 
         BROKER_transfer_storage.append(Allocation_frequency * BROKER_transfer_amount)
 
         # Update BROKER utility reserve storage
         BROKER_utility_reserve_storage.append(BROKER_utility_reserve)
+        # print(BROKER_utility_reserve_storage[-1])
+
+    ##############
+
+    # PRINT TABLES
+
+    ##############
 
 
-        ############################################
+    # Pre-processing - binary transformation of equilibrium ID
 
-        # RESET MF1 and MF2 and Allocation_frequency
+    if ONE_EQ_ID == "cc":
+        ONE_cc_eq = 1
+        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
+            ONE_cc_eq_strat.append("mixed")
+        else:
+            ONE_cc_eq_strat.append("pure")
+        if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
+            ONE_cc_eq_strat.append("mixed")
+        else:
+            ONE_cc_eq_strat.append("pure")
+    elif ONE_EQ_ID == "cd":
+        ONE_cd_eq = 1
+        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
+            ONE_cd_eq_strat.append("mixed")
+        else:
+            ONE_cd_eq_strat.append("pure")
+        if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
+            ONE_cd_eq_strat.append("mixed")
+        else:
+            ONE_cd_eq_strat.append("pure")
+    elif ONE_EQ_ID == "dc":
+        ONE_dc_eq = 1
+        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
+            ONE_dc_eq_strat.append("mixed")
+        else:
+            ONE_dc_eq_strat.append("pure")
+        if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
+            ONE_dc_eq_strat.append("mixed")
+        else:
+            ONE_dc_eq_strat.append("pure")
+    else:
+        ONE_dd_eq = 1
+        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
+            ONE_dd_eq_strat.append("mixed")
+        else:
+            ONE_dd_eq_strat.append("pure")
+        if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
+            ONE_dd_eq_strat.append("mixed")
+        else:
+            ONE_dd_eq_strat.append("pure")
 
-        ############################################
+    if TWO_EQ_ID == "cc":
+        TWO_cc_eq = 1
+        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
+            TWO_cc_eq_strat.append("mixed")
+        else:
+            TWO_cc_eq_strat.append("pure")
+        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
+            TWO_cc_eq_strat.append("mixed")
+        else:
+            TWO_cc_eq_strat.append("pure")
+    elif TWO_EQ_ID == "cd":
+        TWO_cd_eq = 1
+        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
+            TWO_cd_eq_strat.append("mixed")
+        else:
+            TWO_cd_eq_strat.append("pure")
+        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
+            TWO_cd_eq_strat.append("mixed")
+        else:
+            TWO_cd_eq_strat.append("pure")
+    elif TWO_EQ_ID == "dc":
+        TWO_dc_eq = 1
+        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
+            TWO_dc_eq_strat.append("mixed")
+        else:
+            TWO_dc_eq_strat.append("pure")
+        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
+            TWO_dc_eq_strat.append("mixed")
+        else:
+            TWO_dc_eq_strat.append("pure")
+    else:
+        TWO_dd_eq = 1
+        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
+            TWO_dd_eq_strat.append("mixed")
+        else:
+            TWO_dd_eq_strat.append("pure")
+        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
+            TWO_dd_eq_strat.append("mixed")
+        else:
+            TWO_dd_eq_strat.append("pure")
+
+    print("---------------------START EPISODE", i, "--------------------")
+
+    # GAME ONE
+
+    print(tabulate([["episode", i]], ["game", "ONE"], "grid"))
+
+
+    print(tabulate([["cc", [round(ONE_P1_cc, 2), round(ONE_P2_cc, 2)], ONE_cc_eq, ONE_cc_eq_strat],
+                    ["cd", [round(ONE_P1_cd, 2), round(ONE_P2_dc, 2)], ONE_cd_eq, ONE_cd_eq_strat],
+                    ["dc", [round(ONE_P1_dc, 2), round(ONE_P2_cd, 2)], ONE_dc_eq, ONE_dc_eq_strat],
+                    ["dd", [round(ONE_P1_dd, 2), round(ONE_P2_dd, 2)], ONE_dd_eq, ONE_dd_eq_strat]],
+                   ["state", "utilities", "nash eq", "eq strategies"], "grid"))
+
+    # GAME TWO
+
+    print(tabulate([["episode", i]], [ "game", "TWO"], "grid"))
+
+    print(tabulate([["cc", [round(TWO_P1_cc, 2), round(TWO_P2_cc, 2)], TWO_cc_eq, TWO_cc_eq_strat],
+                    ["cd", [round(TWO_P1_cd, 2), round(TWO_P2_dc, 2)], TWO_cd_eq, TWO_cd_eq_strat],
+                    ["dc", [round(TWO_P1_dc, 2), round(TWO_P2_cd, 2)], TWO_dc_eq, TWO_dc_eq_strat],
+                    ["dd", [round(TWO_P1_dd, 2), round(TWO_P2_dd, 2)], TWO_dd_eq, TWO_dd_eq_strat]],
+                   ["state", "utilities", "nash eq", "eq strategies"], "grid"))
+
+    print("----------------------END EPISODE", i, "---------------------")
+    print("")
+
+
+    ###############################################################################
+
+    # RESET MF1 AND MF2, ALLOCATION FREQUENCY, BINARY EQ IDS AND BINARY STRATEGIES
+
+    ###############################################################################
 
     MF1 = 0
     MF2 = 0
     Allocation_frequency = 0
+    ONE_cc_eq, ONE_cd_eq, ONE_dc_eq, ONE_dd_eq = 0, 0, 0, 0
+    TWO_cc_eq, TWO_cd_eq, TWO_dc_eq, TWO_dd_eq = 0, 0, 0, 0
+    ONE_cc_eq_strat, ONE_cd_eq_strat, ONE_dc_eq_strat, ONE_dd_eq_strat = [], [], [], []
+    TWO_cc_eq_strat, TWO_cd_eq_strat, TWO_dc_eq_strat, TWO_dd_eq_strat = [], [], [], []
+
+
