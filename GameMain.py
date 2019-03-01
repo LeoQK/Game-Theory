@@ -1,3 +1,5 @@
+# RETIRED 
+
 import numpy as np
 from numpy import random
 from numpy.random import choice
