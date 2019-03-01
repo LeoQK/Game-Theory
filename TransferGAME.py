@@ -13,6 +13,7 @@ import numpy as np
 import nashpy as nash
 from numpy.random import choice
 from tabulate import tabulate
+from beautifultable import BeautifulTable
 
 
 # The code is divided into pre-loop and main loop.
@@ -111,8 +112,46 @@ ONE_cc_eq, ONE_cd_eq, ONE_dc_eq, ONE_dd_eq = 0, 0, 0, 0
 TWO_cc_eq, TWO_cd_eq, TWO_dc_eq, TWO_dd_eq = 0, 0, 0, 0
 
 # Equilibrium strategy profile binary
-ONE_cc_eq_strat, ONE_cd_eq_strat, ONE_dc_eq_strat, ONE_dd_eq_strat = [], [], [], []
-TWO_cc_eq_strat, TWO_cd_eq_strat, TWO_dc_eq_strat, TWO_dd_eq_strat = [], [], [], []
+ONE_eq_strat, TWO_eq_strat = [], []
+
+# Destinations
+ONE_P1_destination, ONE_P2_destination, TWO_P1_destination, TWO_P2_destination = None, None, None, None
+
+# BROKER SUPPORT REQUEST
+ONE_P1_request, ONE_P2_request, TWO_P1_request, TWO_P2_request = None, None, None, None
+
+# Transfer initialize as zero
+ONE_P1_transfer, ONE_P2_transfer, TWO_P1_transfer, TWO_P2_transfer = 0, 0, 0, 0
+ONE_P1_transfer_discounted, ONE_P2_transfer_discounted = 0, 0
+TWO_P1_transfer_discounted, TWO_P2_transfer_discounted = 0, 0
+
+# BROKER support initialize as zero
+ONE_P1_broker_support, ONE_P2_broker_support, TWO_P1_broker_support, TWO_P2_broker_support = 0, 0, 0, 0
+
+# BROKER discount rate initalize as zero
+BROKER_discount_rate = 0
+
+# BROKER transfer amount initialize as zero
+BROKER_transfer_amount = 0
+
+# BROKER allocation rate
+BROKER_allocation_rate = 0
+
+# Additional stacked variables
+ONE_P1_total_requests = 0
+ONE_P2_total_requests = 0
+TWO_P1_total_requests = 0
+TWO_P2_total_requests = 0
+
+ONE_P1_allocation_num = 0
+ONE_P2_allocation_num = 0
+TWO_P1_allocation_num = 0
+TWO_P2_allocation_num = 0
+
+ONE_P1_allocated_amount = 0
+ONE_P2_allocated_amount = 0
+TWO_P1_allocated_amount = 0
+TWO_P2_allocated_amount = 0
 
 ###########
 
@@ -120,7 +159,7 @@ TWO_cc_eq_strat, TWO_cd_eq_strat, TWO_dc_eq_strat, TWO_dd_eq_strat = [], [], [],
 
 ###########
 
-for i in range(50):
+for i in range(10):
 
     ##########################
 
@@ -276,19 +315,19 @@ for i in range(50):
     # print("MF1", "i =", i, MF1, P1s_memory)
     # print("MF2", "i =", i, MF2, P2s_memory)
 
-    # Calculate utility to be transferred
-    # For now, the calculation is a random sample from a player's equilibrium utility weighted by the memory factor
-    ONE_P1_transfer = random.uniform(0, ONE_P1_EQ_utility) * MF1
-    ONE_P2_transfer = random.uniform(0, ONE_P2_EQ_utility) * MF1
-    TWO_P1_transfer = random.uniform(0, TWO_P1_EQ_utility) * MF2
-    TWO_P2_transfer = random.uniform(0, TWO_P2_EQ_utility) * MF2
-
     # Check transfer status
     # Transfer starts only after five iterations of the game have taken place
     if len(ONE_P1_EQ_choice_storage[-5:]) >= 5:
         Transfer_status = "Positive"
     else:
         pass
+    if Transfer_status == "Positive":
+        # Calculate utility to be transferred
+        # For now, the calculation is a random sample from a player's equilibrium utility weighted by the memory factor
+        ONE_P1_transfer = random.uniform(0, ONE_P1_EQ_utility) * MF1
+        ONE_P2_transfer = random.uniform(0, ONE_P2_EQ_utility) * MF1
+        TWO_P1_transfer = random.uniform(0, TWO_P1_EQ_utility) * MF2
+        TWO_P2_transfer = random.uniform(0, TWO_P2_EQ_utility) * MF2
 
     ###############################
 
@@ -304,15 +343,16 @@ for i in range(50):
     # PRE-PROCESSING BROKER
 
     #######################
+    if Transfer_status == "Positive":
 
-    # Discount rate
-    BROKER_discount_rate = random.uniform(0, 1)
+        # Discount rate
+        BROKER_discount_rate = random.uniform(0, 1)
 
-    # Application of discount rate to utility to be be transferred
-    ONE_P1_transfer_discounted = ONE_P1_transfer * BROKER_discount_rate
-    ONE_P2_transfer_discounted = ONE_P2_transfer * BROKER_discount_rate
-    TWO_P1_transfer_discounted = TWO_P1_transfer * BROKER_discount_rate
-    TWO_P2_transfer_discounted = TWO_P2_transfer * BROKER_discount_rate
+        # Application of discount rate to utility to be be transferred
+        ONE_P1_transfer_discounted = ONE_P1_transfer * BROKER_discount_rate
+        ONE_P2_transfer_discounted = ONE_P2_transfer * BROKER_discount_rate
+        TWO_P1_transfer_discounted = TWO_P1_transfer * BROKER_discount_rate
+        TWO_P2_transfer_discounted = TWO_P2_transfer * BROKER_discount_rate
 
     if Transfer_status == "Positive":
         # BROKER utility accumulation as subtraction of transfer_discounted from transfer
@@ -321,13 +361,13 @@ for i in range(50):
         BROKER_utility_reserve += TWO_P1_transfer - TWO_P1_transfer_discounted
         BROKER_utility_reserve += TWO_P2_transfer - TWO_P2_transfer_discounted
 
-    ###########################################
+        ###########################################
 
-    # UPDATE STORAGE OF BROKER RATE AND RESERVE
+        # UPDATE STORAGE OF BROKER RATE AND RESERVE
 
-    ###########################################
+        ###########################################
 
-    BROKER_rate_storage.append(BROKER_discount_rate)
+        BROKER_rate_storage.append(BROKER_discount_rate)
 
     ########################
 
@@ -454,28 +494,32 @@ for i in range(50):
 
     if Transfer_status == "Positive":
         if (ONE_P1_EQ_utilities_storage[-1] - ONE_P1_EQ_utilities_storage[-2]) < (ONE_P1_EQ_utilities_storage[-1] / 2):
-            ONE_P1_request = "need"
+            ONE_P1_request = "yes"
+            ONE_P1_total_requests += 1
         else:
-            ONE_P1_request = "pass"
+            ONE_P1_request = "no"
 
         if (ONE_P2_EQ_utilities_storage[-1] - ONE_P2_EQ_utilities_storage[-2]) < (ONE_P2_EQ_utilities_storage[-1] / 2):
-            ONE_P2_request = "need"
+            ONE_P2_request = "yes"
+            ONE_P2_total_requests += 1
         else:
-            ONE_P2_request = "pass"
+            ONE_P2_request = "no"
 
         if (TWO_P1_EQ_utilities_storage[-1] - TWO_P1_EQ_utilities_storage[-2]) < (TWO_P1_EQ_utilities_storage[-1] / 2):
-            TWO_P1_request = "need"
+            TWO_P1_request = "yes"
+            TWO_P1_total_requests += 1
         else:
-            TWO_P1_request = "pass"
+            TWO_P1_request = "no"
 
         if (TWO_P2_EQ_utilities_storage[-1] - TWO_P2_EQ_utilities_storage[-2]) < (TWO_P2_EQ_utilities_storage[-1] / 2):
-            TWO_P2_request = "need"
+            TWO_P2_request = "yes"
+            TWO_P2_total_requests += 1
         else:
-            TWO_P2_request = "pass"
+            TWO_P2_request = "no"
 
         # BROKER allocation rate, defining probability of allocating v. not allocating is request == need
 
-        BROKER_allocation_rate = 1
+        BROKER_allocation_rate = 0.5
 
         BROKER_choice_distribution = [BROKER_allocation_rate, (1 - BROKER_allocation_rate)]
 
@@ -489,7 +533,7 @@ for i in range(50):
 
         # BROKER transfer enhances equilibrium position
 
-        if ONE_P1_request == "need":
+        if ONE_P1_request == "yes":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
             if BROKER_choice == "allocate":
                 if ONE_P1_EQ_choice_storage[-1] == "c" and ONE_P2_EQ_choice_storage[-1] == "c":
@@ -501,11 +545,14 @@ for i in range(50):
                 elif ONE_P1_EQ_choice_storage[-1] == "d" and ONE_P2_EQ_choice_storage[-1] == "d":
                     ONE_P1_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+                ONE_P1_broker_support = BROKER_transfer_amount
+                ONE_P1_allocation_num += 1
+                ONE_P1_allocated_amount += BROKER_transfer_amount
             else:
                 pass
+                ONE_P1_broker_support = 0
 
-
-        if ONE_P2_request == "need":
+        if ONE_P2_request == "yes":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
             if BROKER_choice == "allocate":
                 if ONE_P1_EQ_choice_storage[-1] == "c" and ONE_P2_EQ_choice_storage[-1] == "c":
@@ -517,10 +564,14 @@ for i in range(50):
                 else:
                     ONE_P2_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+                ONE_P2_broker_support = BROKER_transfer_amount
+                ONE_P2_allocation_num += 1
+                ONE_P2_allocated_amount += BROKER_transfer_amount
             else:
                 pass
+                ONE_P2_broker_support = 0
 
-        if TWO_P1_request == "need":
+        if TWO_P1_request == "yes":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
             if BROKER_choice == "allocate":
                 if TWO_P1_EQ_choice_storage[-1] == "c" and TWO_P2_EQ_choice_storage[-1] == "c":
@@ -532,10 +583,14 @@ for i in range(50):
                 else:
                     TWO_P1_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+                TWO_P1_broker_support = BROKER_transfer_amount
+                TWO_P1_allocation_num += 1
+                TWO_P1_allocated_amount += BROKER_transfer_amount
             else:
                 pass
+                TWO_P1_broker_support = 0
 
-        if TWO_P2_request == "need":
+        if TWO_P2_request == "yes":
             BROKER_choice = choice(BROKER_choice_categories, p=BROKER_choice_distribution)
             if BROKER_choice == "allocate":
                 if TWO_P1_EQ_choice_storage[-1] == "c" and TWO_P2_EQ_choice_storage[-1] == "c":
@@ -547,8 +602,12 @@ for i in range(50):
                 else:
                     TWO_P2_dd += BROKER_transfer_amount
                 Allocation_frequency += 1
+                TWO_P2_broker_support = BROKER_transfer_amount
+                TWO_P2_allocation_num += 1
+                TWO_P2_allocated_amount += BROKER_transfer_amount
             else:
                 pass
+                TWO_P2_broker_support = 0
 
         # Subtract allocated transfers from BROKER_utility_reserve
 
@@ -579,127 +638,125 @@ for i in range(50):
 
     # Pre-processing - binary transformation of equilibrium ID
 
-    if ONE_EQ_ID == "cc":
-        ONE_cc_eq = 1
+
         if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
-            ONE_cc_eq_strat.append("mixed")
+            ONE_eq_strat.append("mixed")
         else:
-            ONE_cc_eq_strat.append("pure")
+            ONE_eq_strat.append("pure")
         if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
-            ONE_cc_eq_strat.append("mixed")
+            ONE_eq_strat.append("mixed")
         else:
-            ONE_cc_eq_strat.append("pure")
-    elif ONE_EQ_ID == "cd":
-        ONE_cd_eq = 1
-        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
-            ONE_cd_eq_strat.append("mixed")
+            ONE_eq_strat.append("pure")
+
+        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
+            TWO_eq_strat.append("mixed")
         else:
-            ONE_cd_eq_strat.append("pure")
+            TWO_eq_strat.append("pure")
         if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
-            ONE_cd_eq_strat.append("mixed")
+            TWO_eq_strat.append("mixed")
         else:
-            ONE_cd_eq_strat.append("pure")
-    elif ONE_EQ_ID == "dc":
-        ONE_dc_eq = 1
-        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
-            ONE_dc_eq_strat.append("mixed")
-        else:
-            ONE_dc_eq_strat.append("pure")
-        if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
-            ONE_dc_eq_strat.append("mixed")
-        else:
-            ONE_dc_eq_strat.append("pure")
+            TWO_eq_strat.append("pure")
+
+    print("---------------------------------START EPISODE", i, "-------------------------------")
+
+    # Game statistics
+
+    game_table = BeautifulTable()
+    game_table.column_headers = ["", "GAME ONE", "GAME TWO"]
+    game_table.append_row(["cc", (round(ONE_P1_cc, 2), round(ONE_P2_cc, 2)),(round(TWO_P1_cc, 2), round(TWO_P2_cc, 2))])
+    game_table.append_row(["cd", (round(ONE_P1_cd, 2), round(ONE_P2_dc, 2)),(round(TWO_P1_cd, 2), round(TWO_P2_dc, 2))])
+    game_table.append_row(["dc", (round(ONE_P1_dc, 2), round(ONE_P2_cd, 2)),(round(TWO_P1_dc, 2), round(TWO_P2_cd, 2))])
+    game_table.append_row(["dd", (round(ONE_P1_dd, 2), round(ONE_P2_dd, 2)),(round(TWO_P1_dd, 2), round(TWO_P2_dd, 2))])
+    game_table.append_row(["Nash EQ", ONE_EQ_ID, TWO_EQ_ID])
+    game_table.append_row(["EQ strategies", (ONE_eq_strat), TWO_eq_strat])
+    print(game_table)
+
+    print("")
+
+    # Player statistics
+
+    player_table = BeautifulTable()
+    player_table.column_headers = ["", "ONE PLAYER 1", "ONE PLAYER 2", "TWO PLAYER 1", "TWO PLAYER 2"]
+    player_table.append_row(["Transfer outflow", round(ONE_P1_transfer, 2), round(ONE_P2_transfer, 2),
+                             round(TWO_P1_transfer, 2), round(TWO_P2_transfer, 2)])
+    player_table.append_row(["Outflow target", ONE_P1_destination, ONE_P2_destination, TWO_P1_destination,
+                             TWO_P2_destination])
+    player_table.append_row(["Transfer inflow", round(TWO_P1_transfer, 2), round(TWO_P2_transfer, 2),
+                             round(ONE_P1_transfer, 2), round(ONE_P2_transfer, 2)])
+    player_table.append_row(["Transfer balance", round(ONE_P1_transfer - TWO_P1_transfer, 2),
+                             round(ONE_P2_transfer - TWO_P2_transfer, 2), round(TWO_P1_transfer - ONE_P1_transfer, 2),
+                             round(TWO_P2_transfer - ONE_P2_transfer, 2)])
+    player_table.append_row(["Support request", ONE_P1_request, ONE_P2_request, TWO_P1_request, TWO_P2_request])
+    player_table.append_row(["Support amount", round(ONE_P1_broker_support, 2), round(ONE_P2_broker_support, 2),
+                             round(TWO_P1_broker_support, 2), round(TWO_P2_broker_support, 2)])
+    print(player_table)
+
+    # Broker statistics
+
+    num_requests = len([k for k in [ONE_P1_request, ONE_P2_request, TWO_P1_request, TWO_P1_request] if k == "yes"])
+    num_responses = len([k for k in [ONE_P1_broker_support, ONE_P2_broker_support, TWO_P1_broker_support, TWO_P2_broker_support]
+                         if k > 0])
+    if num_responses > 0:
+        support_ratio = (num_responses / num_requests)
     else:
-        ONE_dd_eq = 1
-        if ONE_EQ_selected[0][0] != 0 and ONE_EQ_selected[0][0] != 1:
-            ONE_dd_eq_strat.append("mixed")
-        else:
-            ONE_dd_eq_strat.append("pure")
-        if ONE_EQ_selected[1][0] != 0 and ONE_EQ_selected[1][0] != 1:
-            ONE_dd_eq_strat.append("mixed")
-        else:
-            ONE_dd_eq_strat.append("pure")
+        support_ratio = 0
 
-    if TWO_EQ_ID == "cc":
-        TWO_cc_eq = 1
-        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
-            TWO_cc_eq_strat.append("mixed")
-        else:
-            TWO_cc_eq_strat.append("pure")
-        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
-            TWO_cc_eq_strat.append("mixed")
-        else:
-            TWO_cc_eq_strat.append("pure")
-    elif TWO_EQ_ID == "cd":
-        TWO_cd_eq = 1
-        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
-            TWO_cd_eq_strat.append("mixed")
-        else:
-            TWO_cd_eq_strat.append("pure")
-        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
-            TWO_cd_eq_strat.append("mixed")
-        else:
-            TWO_cd_eq_strat.append("pure")
-    elif TWO_EQ_ID == "dc":
-        TWO_dc_eq = 1
-        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
-            TWO_dc_eq_strat.append("mixed")
-        else:
-            TWO_dc_eq_strat.append("pure")
-        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
-            TWO_dc_eq_strat.append("mixed")
-        else:
-            TWO_dc_eq_strat.append("pure")
-    else:
-        TWO_dd_eq = 1
-        if TWO_EQ_selected[0][0] != 0 and TWO_EQ_selected[0][0] != 1:
-            TWO_dd_eq_strat.append("mixed")
-        else:
-            TWO_dd_eq_strat.append("pure")
-        if TWO_EQ_selected[1][0] != 0 and TWO_EQ_selected[1][0] != 1:
-            TWO_dd_eq_strat.append("mixed")
-        else:
-            TWO_dd_eq_strat.append("pure")
-
-    print("---------------------START EPISODE", i, "--------------------")
-
-    # GAME ONE
-
-    print(tabulate([["episode", i]], ["game", "ONE"], "grid"))
+    broker_inflows = ONE_P1_transfer - ONE_P1_transfer_discounted + ONE_P2_transfer - ONE_P2_transfer_discounted + \
+                     TWO_P1_transfer - TWO_P1_transfer_discounted + TWO_P2_transfer - TWO_P2_transfer_discounted
 
 
-    print(tabulate([["cc", [round(ONE_P1_cc, 2), round(ONE_P2_cc, 2)], ONE_cc_eq, ONE_cc_eq_strat],
-                    ["cd", [round(ONE_P1_cd, 2), round(ONE_P2_dc, 2)], ONE_cd_eq, ONE_cd_eq_strat],
-                    ["dc", [round(ONE_P1_dc, 2), round(ONE_P2_cd, 2)], ONE_dc_eq, ONE_dc_eq_strat],
-                    ["dd", [round(ONE_P1_dd, 2), round(ONE_P2_dd, 2)], ONE_dd_eq, ONE_dd_eq_strat]],
-                   ["state", "utilities", "nash eq", "eq strategies"], "grid"))
+    broker_table = BeautifulTable()
+    broker_table.column_headers = ["", "BROKER"]
+    broker_table.append_row(["Allocation inflow", round(broker_inflows, 2)])
+    broker_table.append_row(["Discount rate", round(BROKER_discount_rate, 2)])
+    broker_table.append_row(["Outflows", round(-Allocation_frequency * BROKER_transfer_amount, 2)])
+    broker_table.append_row(["Support amount", round(BROKER_transfer_amount, 2)])
+    broker_table.append_row(["Defined support rate", round(BROKER_allocation_rate, 2)])
+    broker_table.append_row(["Support requests", num_requests])
+    broker_table.append_row(["Actual support rate", support_ratio])
+    broker_table.append_row(["Allocation balance", round(broker_inflows - (Allocation_frequency * BROKER_transfer_amount), 2)])
+    broker_table.append_row(["Reserve", round(BROKER_utility_reserve, 2)])
+    print(broker_table)
 
-    # GAME TWO
-
-    print(tabulate([["episode", i]], [ "game", "TWO"], "grid"))
-
-    print(tabulate([["cc", [round(TWO_P1_cc, 2), round(TWO_P2_cc, 2)], TWO_cc_eq, TWO_cc_eq_strat],
-                    ["cd", [round(TWO_P1_cd, 2), round(TWO_P2_dc, 2)], TWO_cd_eq, TWO_cd_eq_strat],
-                    ["dc", [round(TWO_P1_dc, 2), round(TWO_P2_cd, 2)], TWO_dc_eq, TWO_dc_eq_strat],
-                    ["dd", [round(TWO_P1_dd, 2), round(TWO_P2_dd, 2)], TWO_dd_eq, TWO_dd_eq_strat]],
-                   ["state", "utilities", "nash eq", "eq strategies"], "grid"))
-
-    print("----------------------END EPISODE", i, "---------------------")
+    print("----------------------------------END EPISODE", i, "--------------------------------")
     print("")
 
 
-    ###############################################################################
+    #############################################################################################################
 
-    # RESET MF1 AND MF2, ALLOCATION FREQUENCY, BINARY EQ IDS AND BINARY STRATEGIES
+    # RESET MF1 AND MF2, ALLOCATION FREQUENCY, BINARY EQ IDS, BINARY EQ STRATEGIES AND BROKER SUPPORT FOR PLAYERS
 
-    ###############################################################################
+    #############################################################################################################
 
     MF1 = 0
     MF2 = 0
     Allocation_frequency = 0
     ONE_cc_eq, ONE_cd_eq, ONE_dc_eq, ONE_dd_eq = 0, 0, 0, 0
     TWO_cc_eq, TWO_cd_eq, TWO_dc_eq, TWO_dd_eq = 0, 0, 0, 0
-    ONE_cc_eq_strat, ONE_cd_eq_strat, ONE_dc_eq_strat, ONE_dd_eq_strat = [], [], [], []
-    TWO_cc_eq_strat, TWO_cd_eq_strat, TWO_dc_eq_strat, TWO_dd_eq_strat = [], [], [], []
+    ONE_eq_strat, TWO_eq_strat = [], []
+    ONE_P1_broker_support, ONE_P2_broker_support, TWO_P1_broker_support, TWO_P2_broker_support = 0, 0, 0, 0
+
+print("TRANSFER GAME COMPLETED. NUMBER OF EPISODES:", i)
+
+ONE_P1_transfer_balance = round((sum(ONE_P1_transfer_storage) - sum(TWO_P1_transfer_storage)), 2)
+ONE_P2_transfer_balance = round((sum(ONE_P2_transfer_storage) - sum(TWO_P2_transfer_storage)), 2)
+TWO_P1_transfer_balance = round((sum(TWO_P1_transfer_storage) - sum(ONE_P1_transfer_storage)), 2)
+TWO_P2_transfer_balance = round((sum(TWO_P2_transfer_storage) - sum(ONE_P2_transfer_storage)), 2)
+
+print("TOTAL SCORES")
+print("")
+final_table = BeautifulTable()
+final_table.column_headers = ["", "UTILITIES", "BALANCE", "REQS", "ALLOCATIONS", "AMOUNT"]
+final_table.append_row(["ONE P1", round(sum(ONE_P1_EQ_utilities_storage), 2), ONE_P1_transfer_balance,
+                        ONE_P1_total_requests, ONE_P1_allocation_num, ONE_P1_allocated_amount])
+final_table.append_row(["ONE P2", round(sum(ONE_P2_EQ_utilities_storage), 2), ONE_P2_transfer_balance,
+                        ONE_P2_total_requests, ONE_P2_allocation_num, ONE_P2_allocated_amount])
+final_table.append_row(["TWO P1", round(sum(TWO_P1_EQ_utilities_storage), 2), TWO_P1_transfer_balance,
+                        TWO_P1_total_requests, TWO_P1_allocation_num, TWO_P1_allocated_amount])
+final_table.append_row(["TWO P2", round(sum(TWO_P2_EQ_utilities_storage), 2), TWO_P2_transfer_balance,
+                        TWO_P2_total_requests, TWO_P2_allocation_num, TWO_P2_allocated_amount])
+print(final_table)
+
+
 
 
