@@ -1,4 +1,4 @@
-""""""
+"""
 
 Vanilla version of the Discounted Utility Transfer Game.
 The game is a meta-game that consists of two games ONE and TWO and one BROKER entity.
