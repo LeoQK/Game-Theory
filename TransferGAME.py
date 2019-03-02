@@ -790,6 +790,3 @@ broker_final_table = BeautifulTable()
 broker_final_table.column_headers = ["", "AVG. DIS. RATE"]
 broker_final_table.append_row(["BROKER", average_discount_rate])
 print(broker_final_table)
-
-
-
