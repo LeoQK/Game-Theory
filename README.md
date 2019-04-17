@@ -17,5 +17,8 @@ In the DTG, each player is part of two interactions:
 
 • A global interaction that differs by game type. This interaction is modeled inside pairs of players, where a pair compromises two players, one from each game.
 
+### Output 
 
+Below is the output for the first episode of the DTG.
 
+![](https://github.com/LeoQK/TransferGame/blob/master/docs/DTG_output_e0.JPG)
