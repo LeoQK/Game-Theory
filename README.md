@@ -25,4 +25,4 @@ Output for the first episode of the DTG.
 
 Output for the last episode of the DTG, ending after 50 runs.
 
-![](https://github.com/LeoQK/TransferGame/blob/master/docs/final.JPG)
+![](https://github.com/LeoQK/TransferGame/blob/master/docs/final02.JPG)
