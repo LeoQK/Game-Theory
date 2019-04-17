@@ -30,3 +30,7 @@ Output for the last episode of the DTG, ending after 50 runs.
 ### Visualization
 
 ![](https://github.com/LeoQK/TransferGame/blob/master/docs/Vis01.JPG)
+
+![](https://github.com/LeoQK/TransferGame/blob/master/docs/Vis02.JPG)
+
+![](https://github.com/LeoQK/TransferGame/blob/master/docs/Vis03.JPG)
