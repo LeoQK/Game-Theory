@@ -1,9 +1,9 @@
 """
 
 Vanilla version of the Discounted Utility Transfer Game.
-The game is a meta-game that consists of two games ONE and TWO and one BROKER entity.
+The game is a meta-game that consists of two 2x2 games ONE and TWO and one BROKER entity.
 The mechanic of the game is the transfer of utilities from one game to the other.
-The transfer goes through the broker, who applies a discount rate to the utilities. 
+The transfers flow through the broker, who discounts the transfer and re-allocates utility.
 
 """
 
