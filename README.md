@@ -19,6 +19,10 @@ In the DTG, each player is part of two interactions:
 
 ### Output 
 
-Below is the output for the first episode of the DTG.
+Output for the first episode of the DTG.
 
 ![](https://github.com/LeoQK/TransferGame/blob/master/docs/DTG_out_e0.JPG)
+
+Output for the last episode of the DTG, ending after 50 runs.
+
+![](https://github.com/LeoQK/TransferGame/blob/master/docs/final.JPG)
